@@ -56,18 +56,37 @@ function [threeDtrain, count] = convertThreeD(train_x, train_y, ntrain)
   for i=1:ntrain
     count(train_y(i, :)+1, :) = count(train_y(i, :)+1, :) + 1;
   endfor
-  display(count);
-  display(size(train_x));
+  
   threeDtrain = zeros(10, max(count), 256);
-  for i=1:ntrain
-    num = train_x(i, 1) + 1;
-    threeDtrain(num, 1:count(num), 256) = train_x(i, :);
+  for i=1:10
+    digit_array = [];
+    for j=1:ntrain
+      if (train_y(j) == i-1)
+        digit_array = [digit_array; train_x(j, :)];
+      endif
+    endfor
+    threeDtrain(i, 1:count(i), :) = digit_array;
   endfor
 endfunction
 
-[three, count] = convertThreeD(train_x, train_y, ntrain);
+[threeD, count] = convertThreeD(train_x, train_y, ntrain);
 
+#problem 5
+function centroids = findCentroids(threeDdata, digit_count)
+  centroids = zeros(10, 256);
+  for i=1:10
+    centroids(i, :) = sum(threeDdata(i, i, :, :), 1);
+    centroids(i, :) = (1/digit_count(i))*centroids(i, :);
+  endfor
+endfunction
 
+centroids = findCentroids(threeD, count);
+display(centroids);
+
+figure 7;
+#digit 3
+im = converttwoD(centroids(4, :));
+imshow(700*im)
 
   
 
