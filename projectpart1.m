@@ -75,7 +75,7 @@ endfunction
 function centroids = findCentroids(threeDdata, digit_count)
   centroids = zeros(10, 256);
   for i=1:10
-    centroids(i, :) = sum(threeDdata(i, i, :, :), 1);
+    centroids(i, :) = sum(threeDdata(i, :, :), 2);
     centroids(i, :) = (1/digit_count(i))*centroids(i, :);
   endfor
 endfunction
@@ -85,9 +85,31 @@ display(centroids);
 
 figure 7;
 #digit 3
-im = converttwoD(centroids(4, :));
-imshow(700*im)
+im = converttwoD(centroids(8, :));
+imshow(im)
 
+
+#test
+correct_predictions = 0;
+for i=1:ntest
+  min_digit = 0;
+  min_val=999999;
+  for j=1:10
+    eucl_dist = norm(test_x(i, :) - centroids(j, :), 2);
+    if (eucl_dist < min_val)
+      min_val = eucl_dist;
+      min_digit = j-1;
+    endif
+  endfor
+  min_digit
+  test_y(i, 1)
+  if (min_digit == test_y(i, 1))
+    correct_predictions = correct_predictions + 1;
+  endif
+endfor
+
+correct_predictions
+display("out of 2007 test cases predicted");
   
 
 
