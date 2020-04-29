@@ -43,7 +43,7 @@ class DigitClassification:
         '''computes the SVD for each digit training set'''
         svd_dict = {}
         for i in range(0, len(D)):
-            U, S, V = np.linalg.svd(D[i], full_matrices=True)
+            U, S, V = np.linalg.svd(D[i], full_matrices=False)
             svd_dict[i] = (U, np.diag(S), V)
         return svd_dict
 
@@ -56,9 +56,9 @@ class DigitClassification:
         return D
 
 
-    def compute_rank_by_digit(self, D):
-        '''Computes ranks for each digit 2D array'''
-        return [np.linalg.matrix_rank(matrix) for matrix in D]
+    def compute_rank_sigma(self, svd_dict):
+        '''Computes ranks for each svd sigma'''
+        return [np.linalg.matrix_rank(svd_dict[key][1]) for key in svd_dict]
 
     
     def compute_rank_k_approximations(self, D, ranks, svd_dict):
@@ -73,13 +73,14 @@ class DigitClassification:
         for i in range(0, len(D)):
             print("Computing rank-k approximation for digit: {0}".format(i))
             minimum = 99999999
-            k = 2
+            k = 1
+            shape_S = svd_dict[i][1].shape
             while k < ranks[i]:
-                U_k = svd_dict[i][0][:, 1:k]
-                S_k = svd_dict[i][1][:, 1:k]
-                V_k = svd_dict[i][2][:, 1:k]
-                US_k = U_k * S_k
-                D_k = np.dot(US_k, np.transpose(V_k))
+                col_difference = shape_S[1]-k
+                U_k= svd_dict[i][0]
+                S_k = np.concatenate((svd_dict[i][1][:, 0:k], np.zeros((shape_S[0], col_difference))), 1)
+                V_k = svd_dict[i][2]
+                D_k = np.dot(U_k*S_k, V_k)
                 matrix_difference = D[i] - D_k
                 total = 0
                 for j in range(0, len(matrix_difference)):
@@ -117,10 +118,10 @@ if __name__ == '__main__':
     #print(svd_dict[0])
     
     #compute ranks for each digit 2D array
-    ranks = dc.compute_rank_by_digit(training_set_split_by_digit)
+    ranks_sigma = dc.compute_rank_sigma(svd_dict)
 
     #compute rank-k approximations
-    rank_k_approximations = dc.compute_rank_k_approximations(training_set_split_by_digit, ranks, svd_dict)
+    rank_k_approximations = dc.compute_rank_k_approximations(training_set_split_by_digit, ranks_sigma, svd_dict)
 
     #load test data
     print("Printing test set...")
