@@ -154,7 +154,6 @@ if __name__ == '__main__':
 
     #compute svd for each digit matrix
     svd_dict = dc.compute_svd(training_set_split_by_digit)
-    #print(svd_dict[0])
     
     #compute ranks for each digit 2D array
     ranks = dc.compute_ranks(training_set_split_by_digit)
