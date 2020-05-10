@@ -1,0 +1,143 @@
+clc;
+clear all;
+train_data = dlmread("usps_train.txt", ",");
+test_data = dlmread("usps_test.txt", ",");
+
+#problem 1
+function [train_x, train_y, ntrain, test_x, test_y, ntest] = usps(traindata, testdata)
+  ntrain = rows(traindata);
+  train_x = traindata(:,1:end-1);
+  train_y = traindata(:, end);
+  ntest = rows(testdata);
+  test_x = testdata(:, 1:end-1);
+  test_y = testdata(:, end);
+endfunction
+
+[train_x train_y ntrain test_x test_y ntest] = usps(train_data, test_data);
+
+#problem 2
+function [IM] = converttwoD(rv)
+  cols = columns(rv);
+  IM = [];
+  row_index = 1;
+  col_index = 1;
+  for i=1:256
+    IM(row_index, col_index) = rv(i);
+    col_index = col_index + 1;
+    if (rem(i, 16) == 0)
+      col_index = 1;
+      row_index = row_index + 1;
+    endif
+  endfor
+endfunction
+
+
+function [threeDtrain, count] = convertThreeD(train_x, train_y, ntrain)
+  count = zeros(10, 1);
+  for i=1:ntrain
+    count(train_y(i, :)+1, :) = count(train_y(i, :)+1, :) + 1;
+  endfor
+  
+  threeDtrain = zeros(10, max(count), 256);
+  for i=1:10
+    digit_array = [];
+    for j=1:ntrain
+      if (train_y(j) == i-1)
+        digit_array = [digit_array; train_x(j, :)];
+      endif
+    endfor
+    threeDtrain(i, 1:count(i), :) = digit_array;
+  endfor
+endfunction
+
+[threeD, count] = convertThreeD(train_x, train_y, ntrain);
+
+#step 1: Compute SVDs
+maxrank = 35;
+function [U3D] = createU3D(threeDtrain, max_rank)
+  for i=0:9
+    A = squeeze(threeDtrain(i+1, :, :));
+    [U S V] = svd(A);
+    U3D(i+1, :, :) = U(:, 1:max_rank);
+  endfor
+endfunction
+
+U3D = createU3D(threeD, maxrank);
+
+#step 2
+function [z] = leastsqerror(Uk, testx, ntest)
+  for j=1:ntest
+    z(j) = norm((eye(256) - Uk*Uk')*testx(j, :)');
+  endfor
+endfunction
+
+#step 3
+function [lsk] = error(U3D, testx, ntest)
+  for j=0:9
+    lsk(:, j+1) = leastsqerror(U3D(j+1, :, :), testx, ntest);
+  endfor
+endfunction
+
+lsk = error(U3D, test_x, ntest);
+
+#step 4 - classify
+count = 0;
+for i=1:ntest
+  min_value = 999999;
+  min_digit = 0;
+  for j=0:9
+    if lsk(i, j+1 < min_value)
+      min_value = lsk(i, j+1);
+      min_digit = j;
+    endif
+  endfor
+  if min_digit == test_y(i)
+    count = count+1;
+  endif
+endfor
+
+display(count)
+display(ntest)
+
+#step 5
+for i=1:maxrank
+  k = i;
+  U3D = createU3D(threeD, k);
+  lsk = error(U3D, test_x, ntest);
+  count = 0;
+  for i=1:ntest
+    min_value = 999999;
+    min_digit = 0;
+    for j=0:9
+      if lsk(i, j+1 < min_value)
+        min_value = lsk(i, j+1);
+        min_digit = j;
+      endif
+    endfor
+    if min_digit == test_y(i)
+      count = count+1;
+    endif
+  endfor
+  display(count)
+  display(ntest)
+  display(k)
+endfor
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
