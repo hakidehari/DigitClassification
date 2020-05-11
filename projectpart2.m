@@ -41,7 +41,7 @@ function [U3D] = createU3D(threeDtrain,count, max_rank)
     A = squeeze(threeDtrain(i+1, :, :));
     A = A(1:count(i+1), :)';
     [U S V] = svd(A);
-    size(U)
+    #size(A)
     U3D(i+1, :, :) = U(:, 1:max_rank);
   endfor
 endfunction
@@ -58,14 +58,15 @@ endfunction
 #step 3
 function [lsk] = error(U3D, testx, ntest)
   for j=0:9
-    lsk(:, j+1) = leastsqerror(U3D(j+1, :, :), testx, ntest);
+    Uk = squeeze(U3D(j+1,:, :));
+    lsk(:, j+1) = leastsqerror(Uk, testx, ntest);
   endfor
 endfunction
 
 lsk = error(U3D, test_x, ntest);
 size(lsk)
 
-#step 4 - classify
+#step 4 - classify k=35
 count_pre = 0;
 for i=1:ntest
   min_value = 999999;
@@ -85,7 +86,8 @@ display(count_pre)
 display(ntest)
 size(test_y)
 
-#step 5
+#step 5 - classify k=1:35
+arr = [];
 for i=1:maxrank
   k = i;
   U3D = createU3D(threeD, count, k);
@@ -101,13 +103,24 @@ for i=1:maxrank
       endif
     endfor
     if (min_digit == test_y(i))
-      count_pre = count_pre+1;
+      count_pre++;
     endif
   endfor
   display(count_pre)
   display(ntest)
   display(k)
+  arr(i) = count_pre;
 endfor
+
+#step 6 - graphing
+y = [];
+for i=1:35
+  y(i) = ntest - arr(i);
+endfor
+arr
+y
+x = linspace(1, 35);
+plot(y);
 
 
 
