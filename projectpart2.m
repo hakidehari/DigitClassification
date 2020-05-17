@@ -41,7 +41,6 @@ function [U3D] = createU3D(threeDtrain,count, max_rank)
     A = squeeze(threeDtrain(i+1, :, :));
     A = A(1:count(i+1), :)';
     [U S V] = svd(A);
-    #size(A)
     U3D(i+1, :, :) = U(:, 1:max_rank);
   endfor
 endfunction
@@ -64,7 +63,6 @@ function [lsk] = error(U3D, testx, ntest)
 endfunction
 
 lsk = error(U3D, test_x, ntest);
-size(lsk)
 
 #step 4 - classify k=35
 count_pre = 0;
@@ -84,7 +82,6 @@ endfor
 
 display(count_pre)
 display(ntest)
-size(test_y)
 
 #step 5 - classify k=1:35
 arr = [];
@@ -109,18 +106,26 @@ for i=1:maxrank
   display(count_pre)
   display(ntest)
   display(k)
-  arr(i) = count_pre;
+  arr = [arr; count_pre];
 endfor
 
 #step 6 - graphing
 y = [];
+#for number of misclassified points
 for i=1:35
   y(i) = ntest - arr(i);
 endfor
-arr
+#display number of misclassified points
 y
-x = linspace(1, 35);
+figure 1;
 plot(y);
+#for error rate
+error_rate = ((1/ntest)*y)*100;
+#display error rate
+error_rate
+figure 2;
+plot(error_rate);
+
 
 
 
